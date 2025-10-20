@@ -1,7 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-const routes = require('./routes/routes');
+const { sequelize } = require('./models');
+const routesRouter = require('./routes/routes');
 
 const app = express();
 
@@ -10,15 +11,21 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-app.use('/api', routes);
+app.use('/api', routesRouter);
 
 // Test route
 app.get('/', (req, res) => {
   res.json({ message: 'Server đang chạy!' });
 });
 
-// Start server
+// Sync database và start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server chạy trên port ${PORT}`);
+
+sequelize.sync({ alter: false }).then(() => {
+  console.log('Database synced successfully!');
+  app.listen(PORT, () => {
+    console.log(`Server chạy trên port ${PORT}`);
+  });
+}).catch(error => {
+  console.error('Lỗi khi sync database:', error);
 });
